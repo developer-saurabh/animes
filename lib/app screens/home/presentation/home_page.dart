@@ -1,10 +1,14 @@
+import 'package:anime/app%20screens/home/presentation/cubit/home_cubit.dart';
+import 'package:anime/app%20screens/home/presentation/cubit/home_state.dart';
 import 'package:anime/routes/route_names.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/color_constants.dart';
 import '../../../core/constants/string_constants.dart';
 import '../../../core/constants/size_constants.dart';
+import '../../../core/di/service_locator.dart';
 import '../../../widgets/common_bottom_nav_bar.dart';
 import '../../../core/network/api_helper.dart';
 import '../data/repositories/home_repository.dart';
@@ -24,6 +28,17 @@ class _HomePageState extends State<HomePage> {
   List<AnimeModel> _topMovies = [];
 
   late final HomeRepository _repository;
+
+  Future<void> _launchHomeTrailer() async {
+  const String url = 'https://www.youtube.com/watch?v=LV-nazLVmgo';
+  final uri = Uri.parse(url);
+
+  await launchUrl(
+    uri,
+    mode: LaunchMode.externalApplication,
+  );
+}
+
 
   @override
   void initState() {
@@ -69,7 +84,34 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(child: _isLoading ? _shimmerView() : _contentView()),
+body: SafeArea(
+  child: BlocProvider(
+    create: (_) => sl<HomeCubit>()..fetchHomeData(),
+    child: BlocBuilder<HomeCubit, HomeState>(
+      builder: (context, state) {
+        if (state is HomeLoading) {
+          return _shimmerView();
+        }
+
+        if (state is HomeLoaded) {
+          _topMovies = state.animeList;
+          return _contentView();
+        }
+
+        if (state is HomeError) {
+          return Center(
+            child: Text(
+              state.message,
+              style: const TextStyle(color: Colors.white),
+            ),
+          );
+        }
+
+        return _shimmerView();
+      },
+    ),
+  ),
+),
       bottomNavigationBar: CommonBottomNavBar(
         currentIndex: _currentIndex,
         onTap: _onBottomNavTap,
@@ -77,7 +119,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ================= REAL CONTENT (UNCHANGED UI) =================
 
   Widget _contentView() {
     if (_topMovies.isEmpty) {
@@ -102,7 +143,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ================= SHIMMER (UNCHANGED) =================
+
 
   Widget _shimmerView() {
     return Shimmer.fromColors(
@@ -157,7 +198,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ================= HERO (SAME UI, REAL DATA) =================
+
 
   Widget _heroSection(AnimeModel anime) {
     return Stack(
@@ -214,7 +255,7 @@ class _HomePageState extends State<HomePage> {
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                     ),
-                    onPressed: () {},
+                     onPressed: _launchHomeTrailer,
                     icon: const Icon(Icons.play_arrow),
                     label: const Text(StringConstants.play),
                   ),
@@ -239,7 +280,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ================= HEADER =================
+
 
   Widget _sectionHeader(String title) {
     return Padding(
@@ -265,8 +306,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
-  // ================= LIST (SAME UI, REAL DATA) =================
 
   Widget _animeHorizontalList(List<AnimeModel> list) {
     return SizedBox(

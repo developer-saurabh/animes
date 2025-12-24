@@ -22,7 +22,6 @@ class _NewReleasesPageState extends State<NewReleasesPage> {
   void initState() {
     super.initState();
 
-    // 🔥 Simulate API delay
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -56,7 +55,7 @@ class _NewReleasesPageState extends State<NewReleasesPage> {
     );
   }
 
-  // ================= CONTENT =================
+
 
   Widget _contentView() {
     return ListView.builder(
@@ -115,7 +114,7 @@ class _NewReleasesPageState extends State<NewReleasesPage> {
     );
   }
 
-  // ================= SHIMMER =================
+
 
   Widget _shimmerView() {
     return Shimmer.fromColors(

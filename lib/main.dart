@@ -1,3 +1,4 @@
+import 'package:anime/core/di/service_locator.dart';
 import 'package:flutter/material.dart';
 
 import 'core/constants/app_constants.dart';
@@ -5,10 +6,12 @@ import 'core/constants/color_constants.dart';
 import 'routes/app_routes.dart';
 import 'routes/route_names.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await setupServiceLocator();
   runApp(const AnimeHubApp());
 }
+
 
 class AnimeHubApp extends StatelessWidget {
   const AnimeHubApp({super.key});
